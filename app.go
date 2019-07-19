@@ -52,6 +52,3 @@ func (a *App) Update() {
 		a.Container.Call("appendChild", e)
 	})
 }
-
-func (a *App) Close() {
-}

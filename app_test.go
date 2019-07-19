@@ -7,7 +7,7 @@ func TestHelloWorld(t *testing.T) {
 	elem.Set("id", "app")
 	Document.Get("body").Call("appendChild", elem)
 
-	app := NewApp(
+	NewApp(
 
 		func() (
 			greetings string,
@@ -26,11 +26,35 @@ func TestHelloWorld(t *testing.T) {
 
 		elem,
 	)
-	defer app.Close()
 
 	html := elem.Get("innerHTML").String()
 	if html != "<div><span>hello, world!</span></div>" {
 		t.Fatal()
 	}
 
+}
+
+func BenchmarkHelloWorld(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		elem := Document.Call("createElement", "div")
+		elem.Set("id", "app")
+		Document.Get("body").Call("appendChild", elem)
+		NewApp(
+			func() (
+				greetings string,
+			) {
+				greetings = "hello, world!"
+				return
+			},
+			func(
+				greetings string,
+			) Spec {
+				return E("div",
+					E("span", greetings),
+				)
+			},
+			elem,
+		)
+		Document.Get("body").Call("removeChild", elem)
+	}
 }
