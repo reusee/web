@@ -3,8 +3,6 @@ package web
 import (
 	"reflect"
 	"syscall/js"
-
-	"github.com/reusee/dscope"
 )
 
 type App struct {
@@ -16,7 +14,7 @@ type App struct {
 }
 
 func NewApp(args ...any) *App {
-	app := new(App)
+	app := &App{}
 	var fns []interface{}
 
 	for _, arg := range args {
@@ -37,9 +35,7 @@ func NewApp(args ...any) *App {
 		}
 
 	}
-	app.Scope = Scope{
-		Scope: dscope.New(fns...),
-	}
+	app.Scope = NewScope(fns...)
 
 	app.Update()
 
