@@ -25,18 +25,6 @@ func (s Scope) SetValue(t reflect.Type, v reflect.Value) {
 		}
 		m[t] = reflect.ValueOf(v)
 	}
-	panic(me(nil, "%v not in scope", t))
-}
-
-func (s Scope) NewValue(t reflect.Type, v reflect.Value) {
-	for i := len(s) - 1; i >= 0; i-- {
-		m := s[i]
-		_, ok := m[t]
-		if !ok {
-			continue
-		}
-		m[t] = v
-	}
 	s[0][t] = v
 }
 
@@ -54,14 +42,12 @@ func (s Scope) Get(t reflect.Type) reflect.Value {
 
 func (s Scope) Assign(targets ...any) {
 	for _, target := range targets {
-		s.AssignValue(reflect.ValueOf(target))
+		s.AssignValue(reflect.ValueOf(target).Elem())
 	}
 }
 
 func (s Scope) AssignValue(target reflect.Value) {
-	value := reflect.ValueOf(target).Elem()
-	t := value.Type()
-	value.Set(s.Get(t))
+	target.Set(s.Get(target.Type()))
 }
 
 func (s Scope) CallValue(fn reflect.Value, targets ...any) []reflect.Value {
@@ -93,7 +79,7 @@ func (s Scope) Update(fns ...any) {
 		rets := s.CallValue(fnValue)
 		fnType := fnValue.Type()
 		for i := 0; i < fnType.NumOut(); i++ {
-			s.NewValue(fnType.Out(i), rets[i])
+			s.SetValue(fnType.Out(i), rets[i])
 		}
 	}
 }

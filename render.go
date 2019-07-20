@@ -1,5 +1,7 @@
 package web
 
+import "reflect"
+
 func Render(
 	specConstructor SpecConstructor,
 	scope Scope,
@@ -12,7 +14,21 @@ func Render(
 ) {
 
 	var spec Spec
-	scope.Call(specConstructor, &spec)
+	rets := scope.Call(specConstructor, &spec)
+	specConstructorType := reflect.TypeOf(specConstructor)
+	for i, ret := range rets {
+		if ret.Type() == specType {
+			continue
+		}
+		if ret.Kind() != reflect.Ptr {
+			panic(me(nil, "bad return type, must be pointer: %v", ret.Type()))
+		}
+		if ret.IsNil() {
+			continue
+		}
+		t := specConstructorType.Out(i).Elem()
+		scope.SetValue(t, ret.Elem())
+	}
 
 	if spec.Identical(oldSpec) {
 		newElement = oldElement

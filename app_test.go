@@ -7,7 +7,7 @@ func TestHelloWorld(t *testing.T) {
 	elem.Set("id", "app")
 	Document.Get("body").Call("appendChild", elem)
 
-	NewApp(
+	app := NewApp(
 
 		func() (
 			greetings string,
@@ -18,10 +18,16 @@ func TestHelloWorld(t *testing.T) {
 
 		func(
 			greetings string,
-		) Spec {
-			return E("div",
+		) (
+			spec Spec,
+			nextGreetings *string,
+		) {
+			spec = E("div",
 				E("span", greetings),
 			)
+			greetings += " again"
+			nextGreetings = &greetings
+			return
 		},
 
 		elem,
@@ -29,6 +35,18 @@ func TestHelloWorld(t *testing.T) {
 
 	html := elem.Get("innerHTML").String()
 	if html != "<div><span>hello, world!</span></div>" {
+		t.Fatal()
+	}
+
+	var greetings string
+	app.Scope.Assign(&greetings)
+	if greetings != "hello, world! again" {
+		t.Fatal()
+	}
+
+	app.Update()
+	html = elem.Get("innerHTML").String()
+	if html != "<div><span>hello, world! again</span></div>" {
 		t.Fatal()
 	}
 

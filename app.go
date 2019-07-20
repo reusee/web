@@ -21,7 +21,14 @@ func NewApp(args ...any) *App {
 		value := reflect.ValueOf(arg)
 		t := value.Type()
 
-		if t.Kind() == reflect.Func && t.NumOut() == 1 && t.Out(0) == specType {
+		if t.Kind() == reflect.Func && func() bool {
+			for i := 0; i < t.NumOut(); i++ {
+				if t.Out(i) == specType {
+					return true
+				}
+			}
+			return false
+		}() {
 			app.SpecConstructor = arg
 
 		} else if elem, ok := arg.(DOMElement); ok && elem.InstanceOf(jsElementType) {
