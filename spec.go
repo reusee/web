@@ -9,3 +9,5 @@ type Spec interface {
 }
 
 var specType = reflect.TypeOf((*Spec)(nil)).Elem()
+
+type SpecConstructor any

@@ -6,11 +6,11 @@ import (
 )
 
 type App struct {
-	Container DOMElement
-	Scope     Scope
-	SpecFunc  reflect.Value
-	Element   DOMElement
-	Spec      Spec
+	Container       DOMElement
+	Scope           Scope
+	SpecConstructor SpecConstructor
+	Element         DOMElement
+	Spec            Spec
 }
 
 func NewApp(args ...any) *App {
@@ -22,7 +22,7 @@ func NewApp(args ...any) *App {
 		t := value.Type()
 
 		if t.Kind() == reflect.Func && t.NumOut() == 1 && t.Out(0) == specType {
-			app.SpecFunc = value
+			app.SpecConstructor = arg
 
 		} else if elem, ok := arg.(DOMElement); ok && elem.InstanceOf(jsElementType) {
 			app.Container = elem
@@ -43,12 +43,16 @@ func NewApp(args ...any) *App {
 }
 
 func (a *App) Update() {
-	var spec Spec
-	a.Scope.CallValue(a.SpecFunc, &spec)
-	a.Element, a.Spec = Patch(spec, a.Element, a.Spec, func(e DOMElement) {
-		if a.Element.Type() != js.TypeUndefined {
-			a.Container.Call("removeChild", a.Element)
-		}
-		a.Container.Call("appendChild", e)
-	})
+	a.Element, a.Spec = Render(
+		a.SpecConstructor,
+		a.Scope,
+		a.Spec,
+		a.Element,
+		func(e DOMElement) {
+			if a.Element.Type() != js.TypeUndefined {
+				a.Container.Call("removeChild", a.Element)
+			}
+			a.Container.Call("appendChild", e)
+		},
+	)
 }

@@ -83,6 +83,10 @@ func (s Scope) CallValue(fn reflect.Value, targets ...any) []reflect.Value {
 	return rets
 }
 
+func (s Scope) Call(fn any, targets ...any) []reflect.Value {
+	return s.CallValue(reflect.ValueOf(fn), targets...)
+}
+
 func (s Scope) Update(fns ...any) {
 	for _, fn := range fns {
 		fnValue := reflect.ValueOf(fn)

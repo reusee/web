@@ -1,14 +1,18 @@
 package web
 
-func Patch(
-	spec Spec,
-	oldElement DOMElement,
+func Render(
+	specConstructor SpecConstructor,
+	scope Scope,
 	oldSpec Spec,
+	oldElement DOMElement,
 	replace func(DOMElement),
 ) (
 	newElement DOMElement,
 	newSpec Spec,
 ) {
+
+	var spec Spec
+	scope.Call(specConstructor, &spec)
 
 	if spec.Identical(oldSpec) {
 		newElement = oldElement
