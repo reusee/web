@@ -22,15 +22,8 @@ func NewApp(args ...any) *App {
 		value := reflect.ValueOf(arg)
 		t := value.Type()
 
-		if t.Kind() == reflect.Func && func() bool {
-			for i := 0; i < t.NumOut(); i++ {
-				if t.Out(i) == specType {
-					return true
-				}
-			}
-			return false
-		}() {
-			app.RootSpec = F(arg)
+		if spec, ok := arg.(Spec); ok {
+			app.RootSpec = spec
 
 		} else if elem, ok := arg.(DOMElement); ok && elem.InstanceOf(jsElementType) {
 			app.Container = elem

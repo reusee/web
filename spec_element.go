@@ -59,6 +59,8 @@ func (e ElementSpec) Patch(
 		notPatchable = true
 	}
 
+	//TODO recycle DOMElement
+
 	if notPatchable {
 		newElement = Document.Call("createElement", e.Tag)
 		for i, child := range e.Children {

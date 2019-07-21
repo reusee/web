@@ -23,7 +23,7 @@ func (f FuncSpec) Patch(
 ) {
 	var spec Spec
 	rets := scope.Call(f.Func, &spec)
-	specConstructorType := reflect.TypeOf(f.Func)
+	fnType := reflect.TypeOf(f.Func)
 	for i, ret := range rets {
 		if ret.Type() == specType {
 			continue
@@ -34,7 +34,7 @@ func (f FuncSpec) Patch(
 		if ret.IsNil() {
 			continue
 		}
-		t := specConstructorType.Out(i).Elem()
+		t := fnType.Out(i).Elem()
 		scope.SetValue(t, ret.Elem())
 	}
 	return spec.Patch(scope, oldSpec, oldElement, replace)

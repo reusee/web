@@ -16,7 +16,7 @@ func TestHelloWorld(t *testing.T) {
 			return
 		},
 
-		func(
+		F(func(
 			greetings string,
 		) (
 			spec Spec,
@@ -28,7 +28,7 @@ func TestHelloWorld(t *testing.T) {
 			greetings += " again"
 			nextGreetings = &greetings
 			return
-		},
+		}),
 
 		elem,
 	)
