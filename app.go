@@ -6,11 +6,12 @@ import (
 )
 
 type App struct {
-	Container       DOMElement
-	Scope           Scope
-	SpecConstructor SpecConstructor
-	Element         DOMElement
-	Spec            Spec
+	Container DOMElement
+	Scope     Scope
+	RootSpec  Spec
+
+	Element DOMElement
+	Spec    Spec
 }
 
 func NewApp(args ...any) *App {
@@ -29,7 +30,7 @@ func NewApp(args ...any) *App {
 			}
 			return false
 		}() {
-			app.SpecConstructor = arg
+			app.RootSpec = F(arg)
 
 		} else if elem, ok := arg.(DOMElement); ok && elem.InstanceOf(jsElementType) {
 			app.Container = elem
@@ -50,11 +51,10 @@ func NewApp(args ...any) *App {
 }
 
 func (a *App) Update() {
-	a.Element, a.Spec = Render(
-		a.SpecConstructor,
+	a.Element, a.Spec = a.RootSpec.Patch(
 		a.Scope,
 		a.Spec,
-		a.Element,
+		&a.Element,
 		func(e DOMElement) {
 			if a.Element.Type() != js.TypeUndefined {
 				a.Container.Call("removeChild", a.Element)

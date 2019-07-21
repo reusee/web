@@ -2,20 +2,28 @@ package web
 
 import "reflect"
 
-func Render(
-	specConstructor SpecConstructor,
+type FuncSpec struct {
+	Func any
+}
+
+var _ Spec = FuncSpec{}
+
+func F(fn any) FuncSpec {
+	return FuncSpec{fn}
+}
+
+func (f FuncSpec) Patch(
 	scope Scope,
 	oldSpec Spec,
-	oldElement DOMElement,
+	oldElement *DOMElement,
 	replace func(DOMElement),
 ) (
 	newElement DOMElement,
 	newSpec Spec,
 ) {
-
 	var spec Spec
-	rets := scope.Call(specConstructor, &spec)
-	specConstructorType := reflect.TypeOf(specConstructor)
+	rets := scope.Call(f.Func, &spec)
+	specConstructorType := reflect.TypeOf(f.Func)
 	for i, ret := range rets {
 		if ret.Type() == specType {
 			continue
@@ -29,21 +37,5 @@ func Render(
 		t := specConstructorType.Out(i).Elem()
 		scope.SetValue(t, ret.Elem())
 	}
-
-	if spec.Identical(oldSpec) {
-		newElement = oldElement
-		newSpec = newSpec
-		return
-	}
-
-	if !spec.Patchable(oldSpec) {
-		newElement = spec.MakeElement()
-		newSpec = spec
-		replace(newElement)
-		return
-	}
-
-	//TODO patch
-
-	return
+	return spec.Patch(scope, oldSpec, oldElement, replace)
 }

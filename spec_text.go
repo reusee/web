@@ -4,18 +4,20 @@ type TextSpec string
 
 var _ Spec = TextSpec("")
 
-func (t TextSpec) Identical(spec Spec) bool {
-	t2, ok := spec.(TextSpec)
-	if !ok {
-		return false
-	}
-	return t == t2
-}
+func (t TextSpec) Patch(
+	scope Scope,
+	oldSpec Spec,
+	oldElement *DOMElement,
+	replace func(DOMElement),
+) (
+	newElement DOMElement,
+	newSpec Spec,
+) {
 
-func (t TextSpec) MakeElement() DOMElement {
-	return Document.Call("createTextNode", string(t))
-}
+	elem := Document.Call("createTextNode", string(t))
+	newElement = elem
+	newSpec = t
+	replace(elem)
 
-func (t TextSpec) Patchable(_ Spec) bool {
-	return false
+	return
 }

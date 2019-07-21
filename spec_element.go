@@ -1,10 +1,16 @@
 package web
 
-import "reflect"
+import (
+	"reflect"
+	"syscall/js"
+)
 
 type ElementSpec struct {
 	Tag      string
 	Children []Spec
+	//TODO attrs
+	//TODO style
+	//TODO events
 }
 
 var _ Spec = ElementSpec{}
@@ -31,42 +37,73 @@ func E(tag string, args ...any) Spec {
 	return elem
 }
 
-func (e ElementSpec) Identical(spec Spec) bool {
-	e2, ok := spec.(ElementSpec)
+func (e ElementSpec) Patch(
+	scope Scope,
+	oldSpec Spec,
+	oldElement *DOMElement,
+	replace func(DOMElement),
+) (
+	newElement DOMElement,
+	newSpec Spec,
+) {
+
+	notPatchable := false
+	if oldElement == nil {
+		notPatchable = true
+	}
+	e2, ok := oldSpec.(ElementSpec)
 	if !ok {
-		return false
+		notPatchable = true
 	}
-	if e.Tag != e2.Tag {
-		return false
+	if e2.Tag != e.Tag {
+		notPatchable = true
 	}
-	if len(e.Children) != len(e2.Children) {
-		return false
+
+	if notPatchable {
+		elem := e.ToElement(
+			scope,
+		)
+		replace(elem)
+		newElement = elem
+		newSpec = e
+		return
 	}
-	for i, c := range e.Children {
-		if !c.Identical(e2.Children[i]) {
-			return false
+
+	// patch children
+	for i, child := range e.Children {
+		oldChildElement := oldElement.Get("childNodes").Index(i)
+		var oldChildElementArg *DOMElement
+		if oldChildElement.Type() != js.TypeUndefined {
+			oldChildElementArg = &oldChildElement
 		}
+		child.Patch(
+			scope,
+			e2.Children[i],
+			oldChildElementArg,
+			func(newChild DOMElement) {
+				oldElement.Call("replaceChild", newChild, oldChildElement)
+			},
+		)
 	}
-	return true
+
+	newElement = *oldElement
+	newSpec = e
+	return
 }
 
-func (e ElementSpec) Patchable(spec Spec) bool {
-	e2, ok := spec.(ElementSpec)
-	if !ok {
-		return false
-	}
-	if e.Tag != e2.Tag {
-		// can't change element tag
-		return false
-	}
-	return true
-}
-
-func (e ElementSpec) MakeElement() DOMElement {
+func (e ElementSpec) ToElement(
+	scope Scope,
+) DOMElement {
 	domElement := Document.Call("createElement", e.Tag)
 	for _, child := range e.Children {
-		childElement := child.MakeElement()
-		domElement.Call("appendChild", childElement)
+		child.Patch(
+			scope,
+			nil,
+			nil,
+			func(elem DOMElement) {
+				domElement.Call("appendChild", elem)
+			},
+		)
 	}
 	return domElement
 }
