@@ -60,11 +60,19 @@ func (e ElementSpec) Patch(
 	}
 
 	if notPatchable {
-		elem := e.ToElement(
-			scope,
-		)
-		replace(elem)
-		newElement = elem
+		newElement = Document.Call("createElement", e.Tag)
+		for i, child := range e.Children {
+			_, newChildSpec := child.Patch(
+				scope,
+				nil,
+				nil,
+				func(elem DOMElement) {
+					newElement.Call("appendChild", elem)
+				},
+			)
+			e.Children[i] = newChildSpec
+		}
+		replace(newElement)
 		newSpec = e
 		return
 	}
@@ -90,22 +98,4 @@ func (e ElementSpec) Patch(
 	newElement = *oldElement
 	newSpec = e
 	return
-}
-
-func (e ElementSpec) ToElement(
-	scope Scope,
-) DOMElement {
-	domElement := Document.Call("createElement", e.Tag)
-	for i, child := range e.Children {
-		_, newChildSpec := child.Patch(
-			scope,
-			nil,
-			nil,
-			func(elem DOMElement) {
-				domElement.Call("appendChild", elem)
-			},
-		)
-		e.Children[i] = newChildSpec
-	}
-	return domElement
 }
