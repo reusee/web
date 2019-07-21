@@ -60,13 +60,13 @@ func BenchmarkHelloWorld(b *testing.B) {
 					greetings = "hello, world!"
 					return
 				},
-				func(
+				F(func(
 					greetings string,
 				) Spec {
 					return E("div",
 						E("span", greetings),
 					)
-				},
+				}),
 				elem,
 			)
 		})
