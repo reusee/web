@@ -101,3 +101,38 @@ func TestElementPatchNotPatchable(t *testing.T) {
 
 	})
 }
+
+func BenchmarkDeepNestedElement(b *testing.B) {
+	e := E("div")
+	for i := 0; i < 512; i++ {
+		e = E("div", e)
+	}
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		tempElement(func(elem DOMElement) {
+			NewApp(
+				e,
+				elem,
+			)
+		})
+	}
+}
+
+func BenchmarkManySubElements(b *testing.B) {
+	var subs []any
+	for i := 0; i < 512; i++ {
+		subs = append(subs, E("div"))
+	}
+	e := E("div", subs...)
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		tempElement(func(elem DOMElement) {
+			NewApp(
+				e,
+				elem,
+			)
+		})
+	}
+}
