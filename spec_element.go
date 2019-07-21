@@ -76,7 +76,7 @@ func (e ElementSpec) Patch(
 		if oldChildElement.Type() != js.TypeUndefined {
 			oldChildElementArg = &oldChildElement
 		}
-		child.Patch(
+		_, newChildSpec := child.Patch(
 			scope,
 			e2.Children[i],
 			oldChildElementArg,
@@ -84,6 +84,7 @@ func (e ElementSpec) Patch(
 				oldElement.Call("replaceChild", newChild, oldChildElement)
 			},
 		)
+		e.Children[i] = newChildSpec
 	}
 
 	newElement = *oldElement
@@ -95,8 +96,8 @@ func (e ElementSpec) ToElement(
 	scope Scope,
 ) DOMElement {
 	domElement := Document.Call("createElement", e.Tag)
-	for _, child := range e.Children {
-		child.Patch(
+	for i, child := range e.Children {
+		_, newChildSpec := child.Patch(
 			scope,
 			nil,
 			nil,
@@ -104,6 +105,7 @@ func (e ElementSpec) ToElement(
 				domElement.Call("appendChild", elem)
 			},
 		)
+		e.Children[i] = newChildSpec
 	}
 	return domElement
 }
