@@ -9,7 +9,7 @@ type Spec interface {
 		oldElement *DOMElement,
 		replace func(DOMElement),
 	) (
-		newElement DOMElement,
+		newElement *DOMElement,
 		newSpec Spec,
 	)
 }

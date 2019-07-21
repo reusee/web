@@ -1,15 +1,11 @@
 package web
 
-import (
-	"syscall/js"
-)
-
 type App struct {
 	Container DOMElement
 	Scope     Scope
 	RootSpec  Spec
 
-	Element DOMElement
+	Element *DOMElement
 	Spec    Spec
 }
 
@@ -42,9 +38,9 @@ func (a *App) Update() {
 	a.Element, a.Spec = a.RootSpec.Patch(
 		a.Scope,
 		a.Spec,
-		&a.Element,
+		a.Element,
 		func(e DOMElement) {
-			if a.Element.Type() != js.TypeUndefined {
+			if a.Element != nil {
 				a.Container.Call("removeChild", a.Element)
 			}
 			a.Container.Call("appendChild", e)

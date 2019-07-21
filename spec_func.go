@@ -18,7 +18,7 @@ func (f FuncSpec) Patch(
 	oldElement *DOMElement,
 	replace func(DOMElement),
 ) (
-	newElement DOMElement,
+	newElement *DOMElement,
 	newSpec Spec,
 ) {
 	var spec Spec

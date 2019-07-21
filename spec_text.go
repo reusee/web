@@ -10,12 +10,12 @@ func (t TextSpec) Patch(
 	oldElement *DOMElement,
 	replace func(DOMElement),
 ) (
-	newElement DOMElement,
+	newElement *DOMElement,
 	newSpec Spec,
 ) {
 
 	elem := Document.Call("createTextNode", string(t))
-	newElement = elem
+	newElement = &elem
 	newSpec = t
 	replace(elem)
 

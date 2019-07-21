@@ -43,7 +43,7 @@ func (e ElementSpec) Patch(
 	oldElement *DOMElement,
 	replace func(DOMElement),
 ) (
-	newElement DOMElement,
+	newElement *DOMElement,
 	newSpec Spec,
 ) {
 
@@ -62,19 +62,20 @@ func (e ElementSpec) Patch(
 	//TODO recycle DOMElement
 
 	if notPatchable {
-		newElement = Document.Call("createElement", e.Tag)
+		elem := Document.Call("createElement", e.Tag)
 		for i, child := range e.Children {
 			_, newChildSpec := child.Patch(
 				scope,
 				nil,
 				nil,
-				func(elem DOMElement) {
-					newElement.Call("appendChild", elem)
+				func(newChild DOMElement) {
+					elem.Call("appendChild", newChild)
 				},
 			)
 			e.Children[i] = newChildSpec
 		}
-		replace(newElement)
+		replace(elem)
+		newElement = &elem
 		newSpec = e
 		return
 	}
@@ -97,7 +98,7 @@ func (e ElementSpec) Patch(
 		e.Children[i] = newChildSpec
 	}
 
-	newElement = *oldElement
+	newElement = oldElement
 	newSpec = e
 	return
 }
