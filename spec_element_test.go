@@ -5,9 +5,9 @@ import "testing"
 func TestElementPatchSubs(t *testing.T) {
 	tempElement(func(elem DOMElement) {
 		app := NewApp(
-			func() int {
+			NewScope(func() int {
 				return 0
-			},
+			}),
 			F(func(
 				i int,
 			) (
@@ -51,9 +51,9 @@ func TestElementPatchSubs(t *testing.T) {
 func TestElementPatchNotPatchable(t *testing.T) {
 	tempElement(func(elem DOMElement) {
 		app := NewApp(
-			func() int {
+			NewScope(func() int {
 				return 0
-			},
+			}),
 			F(func(
 				i int,
 			) (

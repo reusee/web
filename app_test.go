@@ -6,12 +6,12 @@ func TestHelloWorld(t *testing.T) {
 	tempElement(func(elem DOMElement) {
 		app := NewApp(
 
-			func() (
+			NewScope(func() (
 				greetings string,
 			) {
 				greetings = "hello, world!"
 				return
-			},
+			}),
 
 			F(func(
 				greetings string,
@@ -54,12 +54,12 @@ func BenchmarkHelloWorld(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		tempElement(func(elem DOMElement) {
 			NewApp(
-				func() (
+				NewScope(func() (
 					greetings string,
 				) {
 					greetings = "hello, world!"
 					return
-				},
+				}),
 				F(func(
 					greetings string,
 				) Spec {

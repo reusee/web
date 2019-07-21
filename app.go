@@ -1,7 +1,6 @@
 package web
 
 import (
-	"reflect"
 	"syscall/js"
 )
 
@@ -16,11 +15,8 @@ type App struct {
 
 func NewApp(args ...any) *App {
 	app := &App{}
-	var fns []interface{}
 
 	for _, arg := range args {
-		value := reflect.ValueOf(arg)
-		t := value.Type()
 
 		if spec, ok := arg.(Spec); ok {
 			app.RootSpec = spec
@@ -28,15 +24,14 @@ func NewApp(args ...any) *App {
 		} else if elem, ok := arg.(DOMElement); ok && elem.InstanceOf(jsElementType) {
 			app.Container = elem
 
-		} else if t.Kind() == reflect.Func {
-			fns = append(fns, arg)
+		} else if scope, ok := arg.(Scope); ok {
+			app.Scope = scope
 
 		} else {
 			panic(me(nil, "unknown argument %#v", arg))
 		}
 
 	}
-	app.Scope = NewScope(fns...)
 
 	app.Update()
 
