@@ -2,6 +2,20 @@
 
 package web
 
+/*
+
+This test needs a modified testing package.
+
+Add the following function to testing package to gain access to testing.Cover:
+
+func GetCover() Cover {
+  return cover
+}
+
+run with: go test -cover -tags cover
+
+*/
+
 import (
 	"os"
 	"testing"
