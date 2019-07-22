@@ -102,6 +102,51 @@ func TestElementPatchNotPatchable(t *testing.T) {
 	})
 }
 
+func TestElementAttrs(t *testing.T) {
+	tempElement(func(elem DOMElement) {
+		app := NewApp(
+			NewScope(func() (
+				string,
+				int,
+			) {
+				return "hello", 0
+			}),
+			F(func(
+				s string,
+				n int,
+			) (
+				spec Spec,
+				nextN *int,
+			) {
+				if n == 0 {
+					spec = E("div",
+						A("foo", s),
+					)
+				} else {
+					spec = E("div",
+						A("bar", s),
+					)
+				}
+				n++
+				nextN = &n
+				return
+			}),
+			elem,
+		)
+
+		html := elem.Get("innerHTML").String()
+		if html != `<div foo="hello"></div>` {
+			t.Fatal()
+		}
+
+		app.Update()
+		html = elem.Get("innerHTML").String()
+		if html != `<div bar="hello"></div>` {
+			t.Fatal()
+		}
+	})
+}
+
 func BenchmarkDeepNestedElement(b *testing.B) {
 	e := E("div")
 	for i := 0; i < 512; i++ {

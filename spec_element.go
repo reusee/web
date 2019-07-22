@@ -7,6 +7,7 @@ import (
 
 type ElementSpec struct {
 	Tag      string
+	Attrs    []ElementAttr
 	Children []Spec
 	//TODO attrs
 	//TODO style
@@ -22,6 +23,10 @@ func E(tag string, args ...any) Spec {
 	for _, arg := range args {
 		if s, ok := arg.(Spec); ok {
 			elem.Children = append(elem.Children, s)
+		} else if attr, ok := arg.(ElementAttr); ok {
+			elem.Attrs = append(elem.Attrs, attr)
+		} else if attrs, ok := arg.([]ElementAttr); ok {
+			elem.Attrs = append(elem.Attrs, attrs...)
 		} else {
 
 			value := reflect.ValueOf(arg)
@@ -35,6 +40,18 @@ func E(tag string, args ...any) Spec {
 		}
 	}
 	return elem
+}
+
+type ElementAttr [2]string
+
+func A(args ...any) (ret []ElementAttr) {
+	for i := 0; i < len(args); i += 2 {
+		ret = append(ret, ElementAttr{
+			toString(args[i]),
+			toString(args[i+1]),
+		})
+	}
+	return
 }
 
 func (e ElementSpec) Patch(
@@ -63,6 +80,9 @@ func (e ElementSpec) Patch(
 
 	if notPatchable {
 		elem := Document.Call("createElement", e.Tag)
+		for _, kv := range e.Attrs {
+			elem.Call("setAttribute", kv[0], kv[1])
+		}
 		for i, child := range e.Children {
 			_, newChildSpec := child.Patch(
 				scope,
@@ -78,6 +98,18 @@ func (e ElementSpec) Patch(
 		newElement = &elem
 		newSpec = e
 		return
+	}
+
+	// patch attrs
+	attrNames := make(map[string]bool)
+	for _, kv := range e.Attrs {
+		oldElement.Call("setAttribute", kv[0], kv[1])
+		attrNames[kv[0]] = true
+	}
+	for _, kv := range e2.Attrs {
+		if !attrNames[kv[0]] {
+			oldElement.Call("removeAttribute", kv[0])
+		}
 	}
 
 	// patch children
