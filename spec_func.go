@@ -24,7 +24,7 @@ func (f FuncSpec) Patch(
 	var spec Spec
 
 	// optimize against observer
-	fnName := reflect.TypeOf(f).Name()
+	fnName := reflect.TypeOf(f.Func).Name()
 	if fnName != "" {
 		observer, ok := oldSpec.(ObserverSpec)
 		if ok {
