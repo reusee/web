@@ -47,6 +47,18 @@ func (s *Scope) Get(t reflect.Type) reflect.Value {
 	panic(me(nil, "%v not in scope", t))
 }
 
+func (s *Scope) Fetch(t reflect.Type) (any, bool) {
+	for i := len(s.Values) - 1; i >= 0; i-- {
+		m := s.Values[i]
+		v, ok := m[t]
+		if !ok {
+			continue
+		}
+		return v.Interface(), true
+	}
+	return nil, false
+}
+
 func (s *Scope) Assign(targets ...any) {
 	for _, target := range targets {
 		s.AssignValue(reflect.ValueOf(target).Elem())

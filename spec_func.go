@@ -24,11 +24,16 @@ func (f FuncSpec) Patch(
 	var spec Spec
 
 	// optimize against observer
-	fnName := reflect.TypeOf(f.Func).Name()
-	if fnName != "" {
+	var name string
+	if v, ok := scope.Fetch(_nameType); ok {
+		name = string(v.(_Name))
+	} else {
+		name = reflect.TypeOf(f.Func).Name()
+	}
+	if name != "" {
 		observer, ok := oldSpec.(ObserverSpec)
 		if ok {
-			if fnName == observer.Name {
+			if name == observer.Name {
 				if observer.NoChange(scope) {
 					newElement = oldElement
 					newSpec = observer
@@ -56,9 +61,9 @@ func (f FuncSpec) Patch(
 	newElement, newSpec = spec.Patch(scope, oldSpec, oldElement, replace)
 
 	// wrap to observer if fn is named
-	if fnName != "" {
+	if name != "" {
 		newSpec = ObserverSpec{
-			Name:         fnName,
+			Name:         name,
 			ScopeVersion: scope.Version,
 			Spec:         newSpec,
 		}
