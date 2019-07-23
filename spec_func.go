@@ -22,6 +22,22 @@ func (f FuncSpec) Patch(
 	newSpec Spec,
 ) {
 	var spec Spec
+
+	// optimize against observer
+	fnName := reflect.TypeOf(f).Name()
+	if fnName != "" {
+		observer, ok := oldSpec.(ObserverSpec)
+		if ok {
+			if fnName == observer.Name {
+				if observer.NoChange(scope) {
+					newElement = oldElement
+					newSpec = observer
+					return
+				}
+			}
+		}
+	}
+
 	rets := scope.Call(f.Func, &spec)
 	fnType := reflect.TypeOf(f.Func)
 	for i, ret := range rets {
@@ -37,5 +53,41 @@ func (f FuncSpec) Patch(
 		t := fnType.Out(i).Elem()
 		scope.SetValue(t, ret.Elem())
 	}
-	return spec.Patch(scope, oldSpec, oldElement, replace)
+	newElement, newSpec = spec.Patch(scope, oldSpec, oldElement, replace)
+
+	// wrap to observer if fn is named
+	if fnName != "" {
+		newSpec = ObserverSpec{
+			Name:         fnName,
+			ScopeVersion: scope.Version,
+			Spec:         newSpec,
+		}
+	}
+
+	return
+}
+
+type ObserverSpec struct {
+	Name         string
+	ScopeVersion int
+	Spec         Spec
+}
+
+var _ Spec = ObserverSpec{}
+
+func (o ObserverSpec) Patch(
+	scope Scope,
+	oldSpec Spec,
+	oldElement *DOMElement,
+	replace func(DOMElement),
+) (
+	newElement *DOMElement,
+	newSpec Spec,
+) {
+	return o.Spec.Patch(scope, oldSpec, oldElement, replace)
+}
+
+func (o ObserverSpec) NoChange(newScope Scope) bool {
+	//TODO
+	return false
 }
