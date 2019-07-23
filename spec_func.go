@@ -88,6 +88,9 @@ func (o ObserverSpec) Patch(
 }
 
 func (o ObserverSpec) NoChange(newScope Scope) bool {
+	if o.ScopeVersion == newScope.Version {
+		return true
+	}
 	//TODO
 	return false
 }

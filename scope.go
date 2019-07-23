@@ -2,8 +2,6 @@ package web
 
 import "reflect"
 
-//TODO update version
-
 type Scope struct {
 	Values  []map[reflect.Type]reflect.Value
 	Version int
@@ -34,6 +32,7 @@ func (s *Scope) SetValue(t reflect.Type, v reflect.Value) {
 		m[t] = reflect.ValueOf(v)
 	}
 	s.Values[0][t] = v
+	s.Version++
 }
 
 func (s *Scope) Get(t reflect.Type) reflect.Value {
@@ -90,4 +89,5 @@ func (s *Scope) Update(fns ...any) {
 			s.SetValue(fnType.Out(i), rets[i])
 		}
 	}
+	s.Version++
 }
