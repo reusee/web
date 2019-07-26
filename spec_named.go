@@ -1,10 +1,10 @@
 package web
 
-type NamedSpec struct {
+type _NamedSpec struct {
 	Spec
 }
 
-var _ Spec = NamedSpec{}
+var _ Spec = _NamedSpec{}
 
 type HasName interface {
 	GetName() string
@@ -17,5 +17,5 @@ func Named(name string, spec Spec) Spec {
 	} else {
 		panic(me(nil, "%#v has no name", spec))
 	}
-	return NamedSpec{spec}
+	return _NamedSpec{spec}
 }
