@@ -1,12 +1,21 @@
 package web
 
 import (
+	crand "crypto/rand"
+	"encoding/binary"
 	"fmt"
+	"math/rand"
 	"strconv"
 	"syscall/js"
 
 	"github.com/reusee/e/v2"
 )
+
+func init() {
+	var seed int64
+	binary.Read(crand.Reader, binary.LittleEndian, &seed)
+	rand.Seed(seed)
+}
 
 var (
 	pt     = fmt.Printf

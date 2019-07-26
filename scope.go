@@ -1,6 +1,9 @@
 package web
 
-import "reflect"
+import (
+	"math/rand"
+	"reflect"
+)
 
 type Scope struct {
 	Values  []map[reflect.Type]reflect.Value
@@ -16,6 +19,15 @@ func NewScope(updates ...any) Scope {
 	}
 	s.Update(updates...)
 	return s
+}
+
+func (s Scope) Clone() Scope {
+	values := make([]map[reflect.Type]reflect.Value, len(s.Values))
+	copy(values, s.Values)
+	return Scope{
+		Values:  values,
+		Version: int(rand.Int63()),
+	}
 }
 
 func (s *Scope) Set(t reflect.Type, v any) {
