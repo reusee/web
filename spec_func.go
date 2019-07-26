@@ -4,12 +4,18 @@ import "reflect"
 
 type FuncSpec struct {
 	Func any
+	Name string
 }
 
-var _ Spec = FuncSpec{}
+var (
+	_ Spec    = FuncSpec{}
+	_ HasName = &FuncSpec{}
+)
 
-func F(fn any) FuncSpec {
-	return FuncSpec{fn}
+func F(fn any) *FuncSpec {
+	return &FuncSpec{
+		Func: fn,
+	}
 }
 
 func (f FuncSpec) Patch(
@@ -24,16 +30,13 @@ func (f FuncSpec) Patch(
 	var spec Spec
 
 	// optimize against observer
-	var name string
-	if v, ok := scope.Get(_nameType); ok {
-		name = string(v.(_Name))
-	} else {
-		name = reflect.TypeOf(f.Func).Name()
+	if f.Name == "" {
+		f.Name = reflect.TypeOf(f.Func).Name()
 	}
-	if name != "" {
+	if f.Name != "" {
 		observer, ok := oldSpec.(ObserverSpec)
 		if ok {
-			if name == observer.Name {
+			if f.Name == observer.Name {
 				if observer.NoChange(scope) {
 					newElement = oldElement
 					newSpec = observer
@@ -61,15 +64,23 @@ func (f FuncSpec) Patch(
 	newElement, newSpec = spec.Patch(scope, oldSpec, oldElement, replace)
 
 	// wrap to observer if fn is named
-	if name != "" {
+	if f.Name != "" {
 		newSpec = ObserverSpec{
-			Name:         name,
+			Name:         f.Name,
 			ScopeVersion: scope.Version,
 			Spec:         newSpec,
 		}
 	}
 
 	return
+}
+
+func (f *FuncSpec) GetName() string {
+	return f.Name
+}
+
+func (f *FuncSpec) SetName(name string) {
+	f.Name = name
 }
 
 type ObserverSpec struct {
