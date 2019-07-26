@@ -26,6 +26,7 @@ func (n NamedSpec) Patch(
 	newElement *DOMElement,
 	newSpec Spec,
 ) {
+	//TODO use sub scope
 	scope.Set(_nameType, _Name(n.Name))
 	return n.Spec.Patch(scope, oldSpec, oldElement, replace)
 }

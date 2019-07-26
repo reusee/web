@@ -25,7 +25,7 @@ func (f FuncSpec) Patch(
 
 	// optimize against observer
 	var name string
-	if v, ok := scope.Fetch(_nameType); ok {
+	if v, ok := scope.Get(_nameType); ok {
 		name = string(v.(_Name))
 	} else {
 		name = reflect.TypeOf(f.Func).Name()

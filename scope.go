@@ -35,26 +35,22 @@ func (s *Scope) SetValue(t reflect.Type, v reflect.Value) {
 	s.Version++
 }
 
-func (s *Scope) Get(t reflect.Type) reflect.Value {
+func (s *Scope) GetValue(t reflect.Type) (ret reflect.Value, ok bool) {
 	for i := len(s.Values) - 1; i >= 0; i-- {
 		m := s.Values[i]
 		v, ok := m[t]
 		if !ok {
 			continue
 		}
-		return v
+		return v, true
 	}
-	panic(me(nil, "%v not in scope", t))
+	return
 }
 
-func (s *Scope) Fetch(t reflect.Type) (any, bool) {
-	for i := len(s.Values) - 1; i >= 0; i-- {
-		m := s.Values[i]
-		v, ok := m[t]
-		if !ok {
-			continue
-		}
-		return v.Interface(), true
+func (s *Scope) Get(t reflect.Type) (ret any, ok bool) {
+	value, ok := s.GetValue(t)
+	if value.IsValid() {
+		return value.Interface(), true
 	}
 	return nil, false
 }
@@ -66,14 +62,22 @@ func (s *Scope) Assign(targets ...any) {
 }
 
 func (s *Scope) AssignValue(target reflect.Value) {
-	target.Set(s.Get(target.Type()))
+	value, ok := s.GetValue(target.Type())
+	if !ok {
+		panic(me(nil, "no %v in scope", target.Type()))
+	}
+	target.Set(value)
 }
 
 func (s *Scope) CallValue(fn reflect.Value, targets ...any) []reflect.Value {
 	var args []reflect.Value
 	fnType := fn.Type()
 	for i := 0; i < fnType.NumIn(); i++ {
-		args = append(args, s.Get(fnType.In(i)))
+		value, ok := s.GetValue(fnType.In(i))
+		if !ok {
+			panic(me(nil, "no %v in scope", fnType.In(i)))
+		}
+		args = append(args, value)
 	}
 	rets := fn.Call(args)
 	for _, target := range targets {
