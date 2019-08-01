@@ -2,6 +2,8 @@ package web
 
 import (
 	"reflect"
+	"sync"
+	"sync/atomic"
 	"syscall/js"
 )
 
@@ -54,6 +56,8 @@ func A(args ...any) (ret []ElementAttr) {
 	return
 }
 
+var nextElementID int32
+
 func (e ElementSpec) Patch(
 	scope Scope,
 	oldSpec Spec,
@@ -86,6 +90,8 @@ func (e ElementSpec) Patch(
 
 	if notPatchable {
 		elem := Document.Call("createElement", e.Tag)
+		id := atomic.AddInt32(&nextElementID, 1)
+		elem.Set("__id__", id)
 		for _, kv := range e.Attrs {
 			elem.Call("setAttribute", kv[0], kv[1])
 		}
@@ -145,13 +151,31 @@ func (e ElementSpec) Patch(
 
 var elementRecycleChan = make(chan *js.Value, 1024)
 
+var elemFinalizers = make(map[int32][]func())
+
+var elemFinalizersL sync.RWMutex
+
+func setFinalizer(id int32, fn func()) {
+	elemFinalizersL.Lock()
+	elemFinalizers[id] = append(elemFinalizers[id], fn)
+	elemFinalizersL.Unlock()
+}
+
 func init() {
 	go func() {
 		for {
 			select {
 
 			case elem := <-elementRecycleChan:
-				pt("%v\n", elem)
+				idValue := elem.Get("__id__")
+				if idValue.Type() != js.TypeUndefined {
+					id := int32(idValue.Int())
+					elemFinalizersL.RLock()
+					for _, fn := range elemFinalizers[id] {
+						fn()
+					}
+					elemFinalizersL.RUnlock()
+				}
 
 			}
 		}

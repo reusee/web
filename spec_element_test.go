@@ -28,19 +28,19 @@ func TestElementPatchSubs(t *testing.T) {
 			elem,
 		)
 
-		html := elem.Get("innerHTML").String()
+		html := getHTML(elem)
 		if html != "<span>foo</span>" {
-			t.Fatal()
+			t.Fatal(html)
 		}
 
 		app.Update()
-		html = elem.Get("innerHTML").String()
+		html = getHTML(elem)
 		if html != "<div><span>bar</span></div>" {
 			t.Fatal()
 		}
 
 		app.Update()
-		html = elem.Get("innerHTML").String()
+		html = getHTML(elem)
 		if html != "<span>ok</span>" {
 			t.Fatal()
 		}
@@ -76,25 +76,25 @@ func TestElementPatchNotPatchable(t *testing.T) {
 			elem,
 		)
 
-		html := elem.Get("innerHTML").String()
+		html := getHTML(elem)
 		if html != "<span>foo</span>" {
 			t.Fatal()
 		}
 
 		app.Update()
-		html = elem.Get("innerHTML").String()
+		html = getHTML(elem)
 		if html != "bar" {
 			t.Fatal()
 		}
 
 		app.Update()
-		html = elem.Get("innerHTML").String()
+		html = getHTML(elem)
 		if html != "<div>yes</div>" {
 			t.Fatal()
 		}
 
 		app.Update()
-		html = elem.Get("innerHTML").String()
+		html = getHTML(elem)
 		if html != "<span>ok</span>" {
 			t.Fatal()
 		}
@@ -134,13 +134,13 @@ func TestElementAttrs(t *testing.T) {
 			elem,
 		)
 
-		html := elem.Get("innerHTML").String()
+		html := getHTML(elem)
 		if html != `<div foo="hello"></div>` {
 			t.Fatal()
 		}
 
 		app.Update()
-		html = elem.Get("innerHTML").String()
+		html = getHTML(elem)
 		if html != `<div bar="hello"></div>` {
 			t.Fatal()
 		}

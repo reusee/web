@@ -30,9 +30,9 @@ func TestHelloWorld(t *testing.T) {
 			elem,
 		)
 
-		html := elem.Get("innerHTML").String()
+		html := getHTML(elem)
 		if html != "<div><span>hello, world!</span></div>" {
-			t.Fatal()
+			t.Fatal(html)
 		}
 
 		var greetings string
@@ -42,7 +42,7 @@ func TestHelloWorld(t *testing.T) {
 		}
 
 		app.Update()
-		html = elem.Get("innerHTML").String()
+		html = getHTML(elem)
 		if html != "<div><span>hello, world! again</span></div>" {
 			t.Fatal()
 		}
