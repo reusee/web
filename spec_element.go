@@ -11,7 +11,6 @@ type ElementSpec struct {
 	Tag      string
 	Attrs    []ElementAttr
 	Children []Spec
-	//TODO attrs
 	//TODO style
 	//TODO events
 }
@@ -161,21 +160,30 @@ func setFinalizer(id int32, fn func()) {
 	elemFinalizersL.Unlock()
 }
 
+func recycleElement(elem *js.Value) {
+	idValue := elem.Get("__id__")
+	if idValue.Type() != js.TypeUndefined {
+		id := int32(idValue.Int())
+		elemFinalizersL.RLock()
+		for _, fn := range elemFinalizers[id] {
+			fn()
+		}
+		elemFinalizersL.RUnlock()
+		children := elem.Get("childNodes")
+		for i, max := 0, children.Length(); i < max; i++ {
+			child := children.Index(i)
+			recycleElement(&child)
+		}
+	}
+}
+
 func init() {
 	go func() {
 		for {
 			select {
 
 			case elem := <-elementRecycleChan:
-				idValue := elem.Get("__id__")
-				if idValue.Type() != js.TypeUndefined {
-					id := int32(idValue.Int())
-					elemFinalizersL.RLock()
-					for _, fn := range elemFinalizers[id] {
-						fn()
-					}
-					elemFinalizersL.RUnlock()
-				}
+				recycleElement(elem)
 
 			}
 		}
