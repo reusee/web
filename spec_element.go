@@ -64,6 +64,14 @@ func (e ElementSpec) Patch(
 	newSpec Spec,
 ) {
 
+	defer func() {
+		// recycle element
+		if oldElement == nil || newElement == oldElement {
+			return
+		}
+		elementRecycleChan <- oldElement
+	}()
+
 	notPatchable := false
 	if oldElement == nil {
 		notPatchable = true
@@ -75,8 +83,6 @@ func (e ElementSpec) Patch(
 	if e2.Tag != e.Tag {
 		notPatchable = true
 	}
-
-	//TODO recycle DOMElement
 
 	if notPatchable {
 		elem := Document.Call("createElement", e.Tag)
@@ -133,4 +139,21 @@ func (e ElementSpec) Patch(
 	newElement = oldElement
 	newSpec = e
 	return
+}
+
+// element recycler
+
+var elementRecycleChan = make(chan *js.Value, 1024)
+
+func init() {
+	go func() {
+		for {
+			select {
+
+			case elem := <-elementRecycleChan:
+				pt("%v\n", elem)
+
+			}
+		}
+	}()
 }
